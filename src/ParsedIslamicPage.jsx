@@ -55,8 +55,15 @@ const ParsedIslamicPage = ({ rawText }) => {
       <ReactMarkdown
         components={{
           p: ({ node, ...props }) => <p className="prose max-w-none" {...props} />,
-          h1: ({ node, ...props }) => <h1 className="prose max-w-none text-2xl font-bold" {...props} />,
-          h2: ({ node, ...props }) => <h2 className="prose max-w-none text-xl font-semibold" {...props} />,
+          h1: ({ node, children, ...props }) =>
+            children.length ? (
+              <h1 className="prose max-w-none text-2xl font-bold" {...props}>{children}</h1>
+            ) : null,
+
+          h2: ({ node, children, ...props }) =>
+            children.length ? (
+              <h2 className="prose max-w-none text-xl font-semibold" {...props}>{children}</h2>
+            ) : null,
           ul: ({ node, ...props }) => <ul className="prose max-w-none list-disc ml-6" {...props} />,
           ol: ({ node, ...props }) => <ol className="prose max-w-none list-decimal ml-6" {...props} />,
           li: ({ node, ...props }) => <li className="prose max-w-none" {...props} />,
