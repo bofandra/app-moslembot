@@ -187,7 +187,7 @@ function App() {
           <div className="mt-6">
             <ReCAPTCHA
               ref={recaptchaRef}
-              sitekey="YOUR_RECAPTCHA_SITE_KEY"
+              sitekey="6Ld7UWorAAAAAG5ZB41Z8FEJ8YbpxFhemdEQYIY3"
               onChange={(token) => setCaptchaToken(token)}
             />
           </div>
