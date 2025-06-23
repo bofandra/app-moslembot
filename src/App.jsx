@@ -187,7 +187,7 @@ function App() {
           <div className="mt-6">
             <ReCAPTCHA
               ref={recaptchaRef}
-              sitekey="6Ld7UWorAAAAAG5ZB41Z8FEJ8YbpxFhemdEQYIY3"
+              sitekey="YOUR_RECAPTCHA_SITE_KEY"
               onChange={(token) => setCaptchaToken(token)}
             />
           </div>
@@ -251,7 +251,7 @@ function App() {
           {loading && (
             <div className="mt-6 flex flex-col items-center">
               <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-300 max-w-sm overflow-hidden">
-                <div className="bg-indigo-500 h-2.5 rounded-full animate-[grow_5s_linear_forwards] w-0"></div>
+                <div className="bg-indigo-500 h-2.5 rounded-full animate-[grow_20s_linear_forwards] w-0"></div>
               </div>
               <style>
                 {`
