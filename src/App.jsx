@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import ParsedIslamicPage from './ParsedIslamicPage';
 import { useSearchParams } from 'react-router-dom';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 function App() {
   const [partialText, setPartialText] = useState('');
@@ -8,7 +9,10 @@ function App() {
   const [searchParams] = useSearchParams();
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState(null);
+  const [showDonatePrompt, setShowDonatePrompt] = useState(false);
   const inputRef = useRef(null);
+  const recaptchaRef = useRef(null);
 
   const rawTextName = searchParams.get('raw_text');
 
@@ -18,7 +22,7 @@ function App() {
     const url = `https://bofandra.pythonanywhere.com/texts/${rawTextName}`;
     fetch(url, {
       method: 'GET',
-      credentials: 'include', // only needed if you're using cookies/sessions
+      credentials: 'include',
       headers: {
         'X-API-Key': 'a9ba6e3a-3179-44c3-a9ca-54bb641e9be3'
       }
@@ -117,16 +121,26 @@ function App() {
   };
 
   const handleShare = async () => {
-    //const textToShare = "This is the content I want to share."; // Replace with dynamic value if needed
+    if (!captchaToken) {
+      alert('Please complete the CAPTCHA before sharing.');
+      return;
+    }
+
+    setShowDonatePrompt(true);
+  };
+
+  const proceedToShare = async () => {
+    setShowDonatePrompt(false);
+
     const textToShare = partialText;
     try {
       const response = await fetch('https://bofandra.pythonanywhere.com/share', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-Key': 'a9ba6e3a-3179-44c3-a9ca-54bb641e9be3', // or from env/config
+          'X-API-Key': 'a9ba6e3a-3179-44c3-a9ca-54bb641e9be3',
         },
-        body: JSON.stringify({ text: textToShare }),
+        body: JSON.stringify({ text: textToShare, captcha_token: captchaToken }),
       });
 
       if (!response.ok) {
@@ -134,7 +148,6 @@ function App() {
       }
 
       const data = await response.json();
-
       const sharedUrl = `${window.location.origin}/?raw_text=${data.raw_text}`;
       await navigator.clipboard.writeText(sharedUrl);
       alert(`Link copied to clipboard: ${sharedUrl}`);
@@ -154,6 +167,10 @@ function App() {
     setPartialText('');
     setQuery('');
     setError(null);
+    setCaptchaToken(null);
+    if (recaptchaRef.current) {
+      recaptchaRef.current.reset();
+    }
   };
 
   return (
@@ -167,7 +184,14 @@ function App() {
             &times;
           </button>
           <ParsedIslamicPage rawText={partialText} />
-          <div className="text-right mt-6">
+          <div className="mt-6">
+            <ReCAPTCHA
+              ref={recaptchaRef}
+              sitekey="6Ld7UWorAAAAAG5ZB41Z8FEJ8YbpxFhemdEQYIY3"
+              onChange={(token) => setCaptchaToken(token)}
+            />
+          </div>
+          <div className="text-right mt-4">
             <button
               onClick={handleShare}
               className="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold px-6 py-2 rounded-full shadow"
@@ -175,6 +199,32 @@ function App() {
               Share
             </button>
           </div>
+
+          {showDonatePrompt && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-lg">
+                <h2 className="text-xl font-semibold mb-4">Would you like to donate to support?</h2>
+                <p className="text-sm mb-6">Visit: <a href="https://sociabuzz.com/bofandra/tribe" target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline">https://sociabuzz.com/bofandra/tribe</a></p>
+                <div className="flex justify-center space-x-4">
+                  <button
+                    onClick={() => {
+                      window.open('https://sociabuzz.com/bofandra/tribe', '_blank');
+                      proceedToShare();
+                    }}
+                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full"
+                  >
+                    Yes, Donate
+                  </button>
+                  <button
+                    onClick={proceedToShare}
+                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-full"
+                  >
+                    No, Thanks
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="text-center w-full max-w-xl bg-white rounded-3xl shadow-2xl p-10 border border-gray-200">
