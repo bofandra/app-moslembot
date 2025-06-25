@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import ParsedIslamicPage from './ParsedIslamicPage';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { useTranslation } from 'react-i18next';
+import * as gtag from './utils/gtag';
 
 function App() {
   const [partialText, setPartialText] = useState('');
@@ -17,6 +18,11 @@ function App() {
   const { t, i18n } = useTranslation();
 
   const rawTextName = searchParams.get('raw_text');
+  const location = useLocation();
+
+  useEffect(() => {
+    gtag.pageview(location.pathname + location.search);
+  }, [location]);
 
   useEffect(() => {
     document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
@@ -49,6 +55,12 @@ function App() {
       setError('Query must be at least 3 characters.');
       return;
     }
+
+    gtag.event({
+      action: 'submit_query',
+      category: 'Search',
+      label: query,
+    });
 
     setError(null);
     setLoading(true);
@@ -131,6 +143,12 @@ function App() {
       alert('Please complete the CAPTCHA before sharing.');
       return;
     }
+
+    gtag.event({
+      action: 'share_text',
+      category: 'Engagement',
+      label: 'Shared raw text',
+    });
 
     setShowDonatePrompt(true);
   };
