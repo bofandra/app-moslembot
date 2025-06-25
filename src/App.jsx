@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import ParsedIslamicPage from './ParsedIslamicPage';
 import { useSearchParams } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
+import { useTranslation } from 'react-i18next';
 
 function App() {
   const [partialText, setPartialText] = useState('');
@@ -13,8 +14,13 @@ function App() {
   const [showDonatePrompt, setShowDonatePrompt] = useState(false);
   const inputRef = useRef(null);
   const recaptchaRef = useRef(null);
+  const { t, i18n } = useTranslation();
 
   const rawTextName = searchParams.get('raw_text');
+
+  useEffect(() => {
+    document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
+  }, [i18n.language]);
 
   useEffect(() => {
     if (!rawTextName) return;
@@ -228,7 +234,12 @@ function App() {
         </div>
       ) : (
         <div className="text-center w-full max-w-xl bg-white rounded-3xl shadow-2xl p-10 border border-gray-200">
-          <h1 className="text-5xl font-bold mb-10 text-indigo-700">Ask an Islamic Question</h1>
+          <div className="flex justify-end mb-6 space-x-2">
+            <button onClick={() => i18n.changeLanguage('en')} className="px-4 py-1 border rounded bg-gray-200 text-gray-500 shadow-inner hover:bg-gray-300">EN</button>
+            <button onClick={() => i18n.changeLanguage('ar')} className="px-4 py-1 border rounded bg-gray-200 text-gray-500 shadow-inner hover:bg-gray-300">AR</button>
+            <button onClick={() => i18n.changeLanguage('id')} className="px-4 py-1 border rounded bg-gray-200 text-gray-500 shadow-inner hover:bg-gray-300">ID</button>
+          </div>
+          <h1 className="text-5xl font-bold mb-10 text-indigo-700">{t('askIslamicQuestion')}</h1>
           <div className="flex items-center justify-between bg-gray-100 border border-gray-300 rounded-full px-6 py-4 mb-6 shadow-inner">
             <input
               ref={inputRef}
@@ -237,7 +248,7 @@ function App() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Type your Islamic query here..."
+              placeholder={t('placeholder')}
             />
           </div>
           <button
@@ -245,7 +256,7 @@ function App() {
             disabled={loading}
             className="bg-gradient-to-r from-indigo-500 to-blue-500 text-white text-lg font-semibold px-8 py-3 rounded-full shadow-lg hover:from-indigo-600 hover:to-blue-600 transition-all duration-300"
           >
-            {loading ? 'Fetching...' : 'Submit'}
+            {loading ? t('streaming') : t('submit')}
           </button>
           {error && <p className="text-red-600 mt-6 text-sm font-medium">{error}</p>}
           {loading && (
@@ -261,7 +272,7 @@ function App() {
                   }
                 `}
               </style>
-              <p className="text-gray-500 mt-4 italic">Streaming response...</p>
+              <p className="text-gray-500 mt-4 italic">{t('streaming')}</p>
             </div>
           )}
         </div>
