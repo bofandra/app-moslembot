@@ -11,6 +11,7 @@ function App() {
   const [searchParams] = useSearchParams();
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loading2, setLoading2] = useState(false);
   const [captchaToken, setCaptchaToken] = useState(null);
   const [showDonatePrompt, setShowDonatePrompt] = useState(false);
   const inputRef = useRef(null);
@@ -20,9 +21,40 @@ function App() {
   const rawTextName = searchParams.get('raw_text');
   const location = useLocation();
 
+  const [suggestions, setSuggestions] = useState([]);
+
+  const fetchSuggestions = async (query) => {
+    if (!query.trim()) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const url = `https://bofandra.pythonanywhere.com//api/suggest?q=${encodeURIComponent(query)}&lang=${i18n.language}`;
+      const res = await fetch(url, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'X-API-Key': 'a9ba6e3a-3179-44c3-a9ca-54bb641e9be3'
+        }
+      })
+      const data = await res.json();
+      setSuggestions(data.slice(0, 5));
+    } catch (err) {
+      console.error("Failed to fetch suggestions:", err);
+      setSuggestions([]);
+    }
+  };
+
   useEffect(() => {
     gtag.pageview(location.pathname + location.search);
   }, [location]);
+
+  useEffect(() => {
+    if (!i18n.language) {
+      i18n.changeLanguage('en');
+    }
+  }, [i18n]);
 
   useEffect(() => {
     document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
@@ -164,7 +196,7 @@ function App() {
           'Content-Type': 'application/json',
           'X-API-Key': 'a9ba6e3a-3179-44c3-a9ca-54bb641e9be3',
         },
-        body: JSON.stringify({ text: textToShare, captcha_token: captchaToken }),
+        body: JSON.stringify({ text: textToShare, query: query, lang: i18n.language, captcha_token: captchaToken }),
       });
 
       if (!response.ok) {
@@ -173,13 +205,29 @@ function App() {
 
       const data = await response.json();
       const sharedUrl = `${window.location.origin}/?raw_text=${data.raw_text}`;
-      await navigator.clipboard.writeText(sharedUrl);
-      alert(`Link copied to clipboard: ${sharedUrl}`);
+
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'Check this out',
+            text: 'Here is the shared content:',
+            url: sharedUrl,
+          });
+        } catch (shareError) {
+          console.error('Sharing failed:', shareError);
+          await navigator.clipboard.writeText(sharedUrl);
+          alert(`Link copied to clipboard: ${sharedUrl}`);
+        }
+      } else {
+        await navigator.clipboard.writeText(sharedUrl);
+        alert(`Link copied to clipboard: ${sharedUrl}`);
+      }
     } catch (err) {
       console.error(err);
       alert('Failed to share or copy the link.');
     }
   };
+
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
@@ -253,21 +301,68 @@ function App() {
       ) : (
         <div className="text-center w-full max-w-xl bg-white rounded-3xl shadow-2xl p-10 border border-gray-200">
           <div className="flex justify-end mb-6 space-x-2">
-            <button onClick={() => i18n.changeLanguage('en')} className="px-4 py-1 border rounded bg-gray-200 text-gray-500 shadow-inner hover:bg-gray-300">EN</button>
-            <button onClick={() => i18n.changeLanguage('ar')} className="px-4 py-1 border rounded bg-gray-200 text-gray-500 shadow-inner hover:bg-gray-300">AR</button>
-            <button onClick={() => i18n.changeLanguage('id')} className="px-4 py-1 border rounded bg-gray-200 text-gray-500 shadow-inner hover:bg-gray-300">ID</button>
+            <button 
+              onClick={() => i18n.changeLanguage('en')} 
+              className={`px-4 py-1 border rounded text-gray-500 shadow-inner hover:bg-gray-300 ${i18n.language === 'en' ? 'bg-gray-300' : 'bg-gray-200'}`}
+            >
+              EN
+            </button>
+            <button 
+              onClick={() => i18n.changeLanguage('ar')} 
+              className={`px-4 py-1 border rounded text-gray-500 shadow-inner hover:bg-gray-300 ${i18n.language === 'ar' ? 'bg-gray-300' : 'bg-gray-200'}`}
+            >
+              AR
+            </button>
+            <button 
+              onClick={() => i18n.changeLanguage('id')} 
+              className={`px-4 py-1 border rounded text-gray-500 shadow-inner hover:bg-gray-300 ${i18n.language === 'id' ? 'bg-gray-300' : 'bg-gray-200'}`}
+            >
+              ID
+            </button>
           </div>
           <h1 className="text-5xl font-bold mb-10 text-indigo-700">{t('askIslamicQuestion')}</h1>
-          <div className="flex items-center justify-between bg-gray-100 border border-gray-300 rounded-full px-6 py-4 mb-6 shadow-inner">
-            <input
-              ref={inputRef}
-              type="text"
-              className="flex-1 text-lg text-gray-800 placeholder-gray-500 outline-none bg-transparent"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={t('placeholder')}
-            />
+          <div className="relative w-full">
+            <div className="flex items-center justify-between bg-gray-100 border border-gray-300 rounded-full px-6 py-4 mb-2 shadow-inner">
+              <input
+                ref={inputRef}
+                type="text"
+                className="flex-1 text-lg text-gray-800 placeholder-gray-500 outline-none bg-transparent"
+                value={query}
+                onChange={async (e) => {
+                  const value = e.target.value;
+                  setQuery(value);
+                  if (value.length >= 4 && !loading2) {
+                    setLoading2(true);
+                    try {
+                      await fetchSuggestions(value);
+                    } finally {
+                      setLoading2(false);
+                    }
+                  }
+                }}
+                onKeyDown={handleKeyDown}
+                placeholder={t('placeholder')}
+              />
+              {loading2 && (
+                <div className="ml-2 animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-gray-600"></div>
+              )}
+            </div>
+            {suggestions?.length > 0 && (
+              <ul className="absolute z-10 bg-white border border-gray-300 rounded-xl mt-1 w-full max-h-60 overflow-y-auto shadow-xl">
+                {suggestions.map((suggestion, idx) => (
+                  <li
+                    key={idx}
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-left"
+                    onClick={() => {
+                      setQuery(suggestion);
+                      setSuggestions([]);
+                    }}
+                  >
+                    {suggestion}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <button
             onClick={fetchRawTextFromQuery}
@@ -280,7 +375,7 @@ function App() {
           {loading && (
             <div className="mt-6 flex flex-col items-center">
               <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-300 max-w-sm overflow-hidden">
-                <div className="bg-indigo-500 h-2.5 rounded-full animate-[grow_20s_linear_forwards] w-0"></div>
+                <div className="bg-indigo-500 h-2.5 rounded-full animate-[grow_60s_linear_forwards] w-0"></div>
               </div>
               <style>
                 {`
