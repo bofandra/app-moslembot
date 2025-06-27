@@ -2,5 +2,8 @@
   "askIslamicQuestion": "Ajukan Pertanyaan Islam",
   "submit": "Kirim",
   "placeholder": "Ketik pertanyaan Islami Anda di sini...",
-  "streaming": "Memuat jawaban..."
+  "streaming": "Memuat jawaban...",
+  "share": {
+    "title": "Lihat ini"
+  }
 }

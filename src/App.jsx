@@ -209,7 +209,7 @@ function App() {
       if (navigator.share) {
         try {
           await navigator.share({
-            title: 'Check this out',
+            title: i18n.t('share.title', 'Check this out'),
             text: query,
             url: sharedUrl,
           });
