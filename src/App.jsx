@@ -256,21 +256,24 @@ function App() {
             &times;
           </button>
           <ParsedIslamicPage rawText={partialText} />
-          <div className="mt-6">
-            <ReCAPTCHA
-              ref={recaptchaRef}
-              sitekey="6Ld7UWorAAAAAG5ZB41Z8FEJ8YbpxFhemdEQYIY3"
-              onChange={(token) => setCaptchaToken(token)}
-            />
-          </div>
-          <div className="text-right mt-4">
-            <button
-              onClick={handleShare}
-              className="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold px-6 py-2 rounded-full shadow"
-            >
-              Share
-            </button>
-          </div>
+          
+          {!rawTextName && (
+            <div className="mt-6">
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey="6Ld7UWorAAAAAG5ZB41Z8FEJ8YbpxFhemdEQYIY3"
+                onChange={(token) => setCaptchaToken(token)}
+              />
+              <div className="text-right mt-4">
+                <button
+                  onClick={handleShare}
+                  className="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold px-6 py-2 rounded-full shadow"
+                >
+                  Share
+                </button>
+              </div>
+            </div>
+          )}
 
           {showDonatePrompt && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
