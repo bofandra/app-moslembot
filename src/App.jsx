@@ -210,7 +210,7 @@ function App() {
         try {
           await navigator.share({
             title: 'Check this out',
-            text: 'Here is the shared content:',
+            text: query,
             url: sharedUrl,
           });
         } catch (shareError) {
@@ -323,10 +323,9 @@ function App() {
           <h1 className="text-5xl font-bold mb-10 text-indigo-700">{t('askIslamicQuestion')}</h1>
           <div className="relative w-full">
             <div className="flex items-center justify-between bg-gray-100 border border-gray-300 rounded-full px-6 py-4 mb-2 shadow-inner">
-              <input
+              <textarea
                 ref={inputRef}
-                type="text"
-                className="flex-1 text-lg text-gray-800 placeholder-gray-500 outline-none bg-transparent"
+                className="flex-1 text-lg text-gray-800 placeholder-gray-500 outline-none bg-transparent resize-none"
                 value={query}
                 onChange={async (e) => {
                   const value = e.target.value;
