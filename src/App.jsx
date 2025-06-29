@@ -30,7 +30,7 @@ function App() {
     }
 
     try {
-      const url = `https://bofandra.pythonanywhere.com//api/suggest?q=${encodeURIComponent(query)}&lang=${i18n.language}`;
+      const url = `https://bofandra.pythonanywhere.com/api/suggest?q=${encodeURIComponent(query)}&lang=${i18n.language}`;
       const res = await fetch(url, {
         method: 'GET',
         credentials: 'include',
