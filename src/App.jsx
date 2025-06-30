@@ -23,6 +23,25 @@ function App() {
 
   const [suggestions, setSuggestions] = useState([]);
 
+  const suggestionContainerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        suggestionContainerRef.current &&
+        !suggestionContainerRef.current.contains(event.target)
+      ) {
+        setSuggestions([]);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const fetchSuggestions = async (query) => {
     if (!query.trim()) {
       setSuggestions([]);
@@ -324,7 +343,7 @@ function App() {
             </button>
           </div>
           <h1 className="text-5xl font-bold mb-10 text-indigo-700">{t('askIslamicQuestion')}</h1>
-          <div className="relative w-full">
+          <div className="relative w-full" ref={suggestionContainerRef}>
             <div className="flex items-center justify-between bg-gray-100 border border-gray-300 rounded-full px-6 py-4 mb-2 shadow-inner">
               <textarea
                 ref={inputRef}
