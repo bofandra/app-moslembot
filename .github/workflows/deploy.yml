@@ -17,6 +17,9 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
     - name: Log in to ACR
       uses: azure/docker-login@v1
       with:
@@ -24,14 +27,16 @@ jobs:
         username: ${{ secrets.ACR_USERNAME }}
         password: ${{ secrets.ACR_PASSWORD }}
 
-    - name: Build and push Docker image
+    - name: Build and push Docker image for amd64
       run: |
-        docker build -t myreactacr.azurecr.io/react-app:latest .
-        docker push myreactacr.azurecr.io/react-app:latest
+        docker buildx build \
+          --platform linux/amd64 \
+          -t myreactacr.azurecr.io/react-app:latest \
+          --push .
 
     - name: Deploy to Azure Container Apps
       run: |
         az containerapp update \
-          --name ${{ secrets.CONTAINER_APP_NAME }} \
-          --resource-group ${{ secrets.RESOURCE_GROUP }} \
+          --name "${{ secrets.CONTAINER_APP_NAME }}" \
+          --resource-group "${{ secrets.RESOURCE_GROUP }}" \
           --image myreactacr.azurecr.io/react-app:latest
