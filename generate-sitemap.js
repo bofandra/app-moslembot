@@ -2,7 +2,7 @@ const fs = require('fs');
 const { SitemapStream, streamToPromise } = require('sitemap');
 
 (async () => {
-  const sitemap = new SitemapStream({ hostname: 'http://moslembot.seven-muslims.com' });
+  const sitemap = new SitemapStream({ hostname: 'http://app.moslembot.com' });
 
   const pages = [
     '/',          // Home
